@@ -1,0 +1,73 @@
+﻿
+@{
+    ViewBag.Title = "load";
+}
+
+<html>
+<body background="~/App_Data/export-map-share.png" style="background-size:100% 100%; background-attachment:fixed; width:100%; height:100%; overflow:hidden">
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+            alert(window.innerWidth);
+            ctx.canvas.width = window.innerWidth;
+            ctx.canvas.height = window.innerHeight;
+
+    </script>
+
+    <script>
+            var flag = 1;
+            var prevLon;
+            var prevLat;
+
+            var IntervalTime = (@ViewBag.time) * 1000
+
+            myTimer = (function () {
+                $.post("@Url.Action("GetPointAfterSave")").done(function (xml) {
+                    if (!xml) {
+                        clearInterval(intervalID);
+                        alert("done!");
+                    } else {
+                        var xmlDoc = $.parseXML(xml),
+                        $xml = $(xmlDoc),
+                        Lon = $xml.find("Lon").text();
+                        Lat = $xml.find("Lat").text();
+
+                        var currLon = ((parseFloat(Lon) + 180) * (canvas.width/360));
+                        var currLat = ((parseFloat(Lat) + 90) * (canvas.height/180));
+                        alert(currLon);
+                        //alert(currLat);
+                        if (flag) {
+                            ctx.beginPath();
+                            ctx.arc(currLon, currLat, 10, 0, 2 * Math.PI);
+                            ctx.fillStyle = 'red';
+                            ctx.fill();
+                            ctx.stroke();
+                            //prevLon = currLon;
+                            //prevLat = currLat;
+                            flag = 0;
+                        } else {
+                            ctx.strokStyle = 'red';
+                            //ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.moveTo(prevLon, prevLat);
+                            ctx.lineTo(currLon, currLat);
+                            
+                            //prevLon = currLon;
+                            //prevLat = currLat;
+                        }
+                        prevLon = currLon;
+                        prevLat = currLat;
+                    }
+                    });
+                });
+
+                var intervalID = setInterval(myTimer, IntervalTime);
+
+    </script>
+
+</body>
+</html>
+
